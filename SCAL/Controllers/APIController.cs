@@ -32,9 +32,22 @@ namespace SCAL.Controllers
             return await TarjetaModel.GuardarIdTarjeta(id);
         }
         [Route("salas_status")]
+        [HttpGet]
         public List<SalaStatus> GetSalaStatuses()
         {
             return SalasModel.GetSalasStatus();
+        }
+        [Route("salas")]
+        [HttpPost]
+        public string SetSala(Sala sala)
+        {
+            return SalasModel.SetSala(sala);
+        }
+        [Route("salas/{id:int}")]
+        [HttpDelete]
+        public string DeleteSala(int id)
+        {
+            return SalasModel.BorrarSala(id);
         }
     }
 }

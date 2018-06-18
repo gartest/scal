@@ -1,4 +1,6 @@
 ﻿@using SCAL.Models
+@using Newtonsoft.Json
+@using Newtonsoft.Json.Linq
 @model List<SalaStatus>
 @{
     ViewBag.Title = "Salas";
@@ -6,6 +8,10 @@
 <h1>Salas</h1>
 <div class="row">
     <div class="col-md-12">
+        <div id="errorAlert" class="alert alert-danger alert-dismissible" role="alert" style="display:none;">
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <strong>Error</strong> no se pudo guardar la sala, intentelo de nuevo más tarde.
+        </div>
         <table class="table table-hover table-striped">
             <thead>
                 <tr>
@@ -13,7 +19,8 @@
                     <th>IP</th>
                     <th>Descripción</th>
                     <th>Estado luces</th>
-                    <th>Acción</th>
+                    <th>Acción luces</th>
+                    <th>Acción salas</th>
                 </tr>
             </thead>
             <tbody>
@@ -35,6 +42,10 @@
                                     <button class='btn btn-danger' onclick="apagar(@s.ip);">Apagar</button>
                                 }
                             }
+                        </td>
+                        <td data-sala="@JObject.FromObject(s).ToString()">
+                            <a href="#" class="text-warning" onclick="editar(this);">Editar</a> |
+                            <a href="#" class="text-danger" onclick="eliminar(this);">Eliminar</a>
                         </td>
                     </tr>
                 }
@@ -72,6 +83,10 @@
                     </div>
                     <input id="sbtn" type="submit" style="display:none;" />
                 </form>
+                <div id="okAlert" class="alert alert-success alert-dismissible" role="alert" style="display:none;">
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <strong>OK</strong> la sala se guardó correctamente.
+                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button>
@@ -80,14 +95,104 @@
         </div>
     </div>
 </div>
+<!-- Modal -->
+<div class="modal fade" id="modalDelSala" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="myModalLabel">Confirmación de eliminación</h4>
+            </div>
+            <div class="modal-body">
+                <h4>¿Está seguro que desea eliminar la sala?</h4>
+                <div id="borradaOk" class="alert alert-success alert-dismissible" role="alert" style="display:none;">
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <strong>OK</strong> la sala se eliminó correctamente.
+                </div>
+                <div id="borradaError" class="alert alert-danger alert-dismissible" role="alert" style="display:none;">
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <strong>Error</strong> no se pudo borrar la sala.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="btnconfirmborrarsala">Confirmar</button>
+            </div>
+        </div>
+    </div>
+</div>
 @section scripts{
     <script>
         $(document).ready(() => {
             $("#btnGuardarNewRoom").click(() => {
-                $("#frmSaveNewRoom").submit(() => {
+                $("#sbtn").click();
+            });
+            $("#frmSaveNewRoom").submit((e) => {
+                e.preventDefault();
+                var data = {
+                    id: null,
+                    ip: $("#ip").val(),
+                    descripcion: $("#descripcion").val()
+                };
+                console.log(JSON.stringify(data));
+                $.ajax({
+                    type: 'POST',
+                    url: '/api/salas',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        id: null,
+                        ip: $("#ip").val(),
+                        descripcion: $("#descripcion").val()
+                    }),
+                })
+                    .done((data) => {
+                        console.log(data);
+                        if (data === 'Ok') {
+                            $("#okAlert").fadeIn();
+                            location.reload();
+                        }
+                        else {
+                            $("#modalNewRoom").modal('hide');
+                            $("#errorAlert").fadeIn().delay(4000).fadeOut();
+                        }
 
-                });
+                    })
+                    .fail(() => {
+                        $("#errorAlert").fadeIn().delay(4000).fadeOut();
+                    })
+                    .always();
+            });
+            $("#btnconfirmborrarsala").click(() => {
+                var std = JSON.parse($("#btnconfirmborrarsala").attr("data-salatodelete"));
+                $.ajax({
+                    type: 'DELETE',
+                    url: '/api/salas/' + std.id,
+                })
+                    .done((data) => {
+                        console.log(data);
+                        if (data === 'Ok') {
+                            $("#borradaOk").fadeIn();
+                            location.reload();
+                        }
+                        else {
+                            $("#borradaError").fadeIn().delay(4000).fadeOut();
+                        }
+
+                    })
+                    .fail(() => {
+                        $("#borradaError").fadeIn().delay(4000).fadeOut();
+                    })
+                    .always();
             });
         });
+        function editar(elem) {
+            var sala = JSON.parse($(elem).parent().attr("data-sala"));
+            console.log(JSON.stringify(sala));
+        }
+        function eliminar(elem) {
+            var sala = JSON.parse($(elem).parent().attr("data-sala"));
+            $("#modalDelSala").modal('show');
+            $("#btnconfirmborrarsala").attr("data-salatodelete", JSON.stringify(sala));
+        }
     </script>
 }
