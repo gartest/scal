@@ -1,0 +1,55 @@
+﻿@{
+    ViewBag.Title = "Usuarios";
+}
+<h1>Usuarios</h1>
+<div class="row">
+    <div class="col-md-12">
+        <table class="table table-hover table-striped">
+            <thead>
+                <tr>
+                    <th>Id</th>
+                    <th>Tarjeta</th>
+                    <th>Nombre</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+        <!-- Button trigger modal -->
+        <button type="button" class="btn btn-primary pull-right" data-toggle="modal" data-target="#modalNewUser">
+            Agregar nueva usuario
+        </button>
+    </div>
+</div>
+<!-- Modal -->
+<div class="modal fade" id="modalNewUser" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="myModalLabel">Agregar nueva sala</h4>
+            </div>
+            <div class="modal-body">
+                <form class="form-horizontal" id="frmSaveNewRoom">
+                    <div class="form-group">
+                        <label for="tarjeta" class="col-sm-2 control-label">Tarjeta</label>
+                        <div class="col-sm-10">
+                            <input type="text" class="form-control" id="tarjeta" placeholder="aa 9a e7 2b" required="required">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="nombre" class="col-sm-2 control-label">Nombre</label>
+                        <div class="col-sm-10">
+                            <input type="text" class="form-control" id="nombre" placeholder="Ej: Sala 10" required="required">
+                        </div>
+                    </div>
+                    <input id="sbtn" type="submit" style="display:none;" />
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="btnGuardarNewRoom">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>

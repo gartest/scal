@@ -1,0 +1,73 @@
+﻿@{
+    ViewBag.Title = "Inicio";
+}
+<h1>Inicio</h1>
+
+<div class="row">
+    <div class="col-md-12">
+        <h2>Registro de últimos accesos a salas</h2>
+        <table class="table table-hover table-striped">
+            <thead>
+                <tr>
+                    <th>Fecha acceso</th>
+                    <th>Usuario</th>
+                    <th>Resultado</th>
+                </tr>                
+            </thead>
+            <tbody>
+
+            </tbody>
+        </table>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-12">
+        <h2>Estado de iluminación en salas</h2>
+        <table class="table table-hover table-striped">
+            <thead>
+                <tr>
+                    <th>Sala</th>
+                    <th>Estado luz</th>
+                </tr>
+            </thead>
+            <tbody id="tbl_status_sala">
+
+            </tbody>
+        </table>
+    </div>
+</div>
+@section scripts{
+    <script>
+        $(document).ready(() => {
+            getAccesos();
+            getStatusLuces();
+            setInterval(() => {
+                //getAccesos();
+                getStatusLuces();
+            }, 1000);
+        });
+        function getAccesos() {
+
+        }
+        function getStatusLuces() {
+            $.get("api/salas_status")
+                .done((data) => {
+                    var tbl = $("#tbl_status_sala");
+                    tbl.html('');
+                    if (data.length > 0) {
+                        $.each(data, (i, v) => {
+                            var clase = v.estadoLuces === 'Luces encendidas' ? 'success' : 'danger';
+                            var tr = '<tr><td>' + v.descripcion + '</td><td><span class="text-'+clase+'">' + v.estadoLuces + '</span></td></tr>';
+                            tbl.append(tr);
+                        });
+                    }
+                })
+                .fail((data) => {
+                    console.log(data);
+                })
+                .always(() => {
+
+                });
+        }
+    </script>
+}
