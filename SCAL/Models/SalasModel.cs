@@ -86,7 +86,7 @@ namespace SCAL.Models
                             {
                                 var client = new HttpClient();
                                 client.Timeout = TimeSpan.FromSeconds(4);
-                                sala.estadoLuces = client.GetStringAsync("http://" + sala.ip + "/?estadoluces").Result;
+                                sala.estadoLuces = client.GetStringAsync("http://" + sala.ip + "/?estadoluces").Result.Replace(Environment.NewLine,string.Empty);
                             }
                             catch
                             {
@@ -160,6 +160,52 @@ namespace SCAL.Models
                     dbConn.Close();
             }
             return res;
+        }
+        public static string EncenderLuz(string ip)
+        {
+            var res = "";
+            var client = new HttpClient();
+            try
+            {
+                var response = client.GetStringAsync("http://" + ip + "/?ledon").Result;
+                if (response.Replace(Environment.NewLine, string.Empty) == "Luces encendidas")
+                {
+                    res = "Ok";
+                }
+                else
+                {
+                    res = "Error encendiendo luces en arduino";
+                }
+            }
+            catch(Exception ex)
+            {
+                res = "Error: " + ex.Message;
+            }
+            return res;
+            
+        }
+        public static string ApagarLuz(string ip)
+        {
+            var res = "";
+            var client = new HttpClient();
+            try
+            {
+                var response = client.GetStringAsync("http://" + ip + "/?ledoff").Result;
+                if (response.Replace(Environment.NewLine, string.Empty) == "Luces apagadas")
+                {
+                    res = "Ok";
+                }
+                else
+                {
+                    res = "Error apagando luces en arduino";
+                }
+            }
+            catch (Exception ex)
+            {
+                res = "Error: " + ex.Message;
+            }
+            return res;
+
         }
     }
 }

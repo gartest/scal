@@ -25,7 +25,7 @@ namespace SCAL.Controllers
             var res = await UsuariosModel.getUsuarios();
             return res.Where(u => u.id == id).FirstOrDefault();
         }
-        [Route("guardaridtarjeta/{id}")]
+        [Route("guardaridtarjeta")]
         [HttpGet]
         public async Task<string> GuardarIdTarjeta(string id)
         {
@@ -48,6 +48,18 @@ namespace SCAL.Controllers
         public string DeleteSala(int id)
         {
             return SalasModel.BorrarSala(id);
+        }
+        [Route("encenderluz")]
+        [HttpGet]
+        public string EncenderLuz(string ip)
+        {
+            return SalasModel.EncenderLuz(ip);
+        }
+        [Route("apagarluz")]
+        [HttpGet]
+        public string ApagarLuz(string ip)
+        {
+            return SalasModel.ApagarLuz(ip);
         }
     }
 }

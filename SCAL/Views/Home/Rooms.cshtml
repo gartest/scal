@@ -33,13 +33,13 @@
                         <td>@(s.estadoLuces == "" ? "Desconocido" : s.estadoLuces)</td>
                         <td>
                             @{
-                                if (s.estadoLuces != "Luces apagadas")
+                                if (s.estadoLuces != "Luces encendidas")
                                 {
-                                    <button class='btn btn-success' onclick="encender(@s.ip);">Encender</button>
+                                    <button class='btn btn-success' onclick="encender('@s.ip');">Encender</button>
                                 }
                                 else
                                 {
-                                    <button class='btn btn-danger' onclick="apagar(@s.ip);">Apagar</button>
+                                    <button class='btn btn-danger' onclick="apagar('@s.ip');">Apagar</button>
                                 }
                             }
                         </td>
@@ -193,6 +193,34 @@
             var sala = JSON.parse($(elem).parent().attr("data-sala"));
             $("#modalDelSala").modal('show');
             $("#btnconfirmborrarsala").attr("data-salatodelete", JSON.stringify(sala));
+        }
+        function encender(ip_sala) {
+            $.get("/api/encenderluz/?ip=" + ip_sala)
+                .done((data) => {
+                    if (data === 'Ok') {
+                        location.reload();
+                    }
+                    else {
+                        alert("ha ocurrido un error, el error fue: \r\n" + data);
+                    }
+                })
+                .fail((data) => {
+                    console.log(data);
+                });
+        }
+        function apagar(ip_sala) {
+            $.get("/api/apagarluz/?ip=" + ip_sala)
+                .done((data) => {
+                    if (data === 'Ok') {
+                        location.reload();
+                    }
+                    else {
+                        alert("ha ocurrido un error, el error fue: \r\n" + data);
+                    }
+                })
+                .fail((data) => {
+                    console.log(data);
+                });
         }
     </script>
 }
