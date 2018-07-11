@@ -23,7 +23,18 @@ namespace SCAL.Controllers
         {
             ViewBag.Rooms = await SalasModel.GetSalas();
             ViewBag.Users = await UsuariosModel.getUsuarios();
+            await ActualizaPermisosSalasAsync();
             return View();
+        }
+        [NonAction]
+        public async Task ActualizaPermisosSalasAsync()
+        {
+            var salas = await SalasModel.GetSalas();
+            foreach (var s in salas)
+            {
+                var tarjetasPermitidas = SalasModel.GetTarjetasPermitidas(s.ip);
+                SalasModel.SetPermisos(s.ip, tarjetasPermitidas);
+            }
         }
     }
 }
