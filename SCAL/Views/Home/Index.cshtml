@@ -2,51 +2,52 @@
     ViewBag.Title = "Inicio";
 }
 <h1>Inicio</h1>
-
 <div class="row">
     <div class="col-md-12">
-        <h2>Registro de últimos accesos a salas</h2>
-        <table class="table table-hover table-striped">
-            <thead>
-                <tr>
-                    <th>Fecha acceso</th>
-                    <th>Usuario</th>
-                    <th>Resultado</th>
-                </tr>                
-            </thead>
-            <tbody>
-
-            </tbody>
-        </table>
+        <h2>Registro de últimos accesos a salas <small><img id="loadingimg2" src="~/Content/images/loading_spinner.gif" style="height:30px;" /></small></h2>
+        <div class="table-responsive">
+            <table class="table table-hover table-striped">
+                <thead>
+                    <tr>
+                        <th>IP</th>
+                        <th>Nombre sala</th>
+                        <th>Tarjeta</th>
+                        <th>Usuario</th>
+                        <th>Resultado</th>
+                        <th>Fecha acceso</th>
+                    </tr>
+                </thead>
+                <tbody id="tbl_log_rfid"></tbody>
+            </table>
+        </div>        
     </div>
 </div>
 <div class="row">
     <div class="col-md-12">
         <h2>Estado de iluminación en salas <small><img id="loadingimg" src="~/Content/images/loading_spinner.gif" style="height:30px;" /></small></h2>        
-        <table class="table table-hover table-striped">
-            <thead>
-                <tr>
-                    <th>Sala</th>
-                    <th>Estado luz</th>
-                </tr>
-            </thead>
-            <tbody id="tbl_status_sala"></tbody>
-        </table>
+        <div class="table-responsive">
+            <table class="table table-hover table-striped">
+                <thead>
+                    <tr>
+                        <th>Sala</th>
+                        <th>Estado luz</th>
+                    </tr>
+                </thead>
+                <tbody id="tbl_status_sala"></tbody>
+            </table>
+        </div>        
     </div>
 </div>
 @section scripts{
     <script>
         $(document).ready(() => {
-            getAccesos();
+            getLogRFID();
             getStatusLuces();
             setInterval(() => {
-                //getAccesos();
+                getLogRFID();
                 getStatusLuces();
             }, 1000);
         });
-        function getAccesos() {
-
-        }
         function getStatusLuces() {
             $.get("api/salas_status")
                 .done((data) => {
@@ -57,6 +58,35 @@
                         $.each(data, (i, v) => {
                             var clase = v.estadoLuces === 'Luces encendidas' ? 'success' : 'danger';
                             var tr = '<tr><td>' + v.descripcion + '</td><td><span class="text-'+clase+'">' + v.estadoLuces + '</span></td></tr>';
+                            tbl.append(tr);
+                        });
+                    }
+                })
+                .fail((data) => {
+                    console.log(data);
+                })
+                .always(() => {
+
+                });
+        }
+        function getLogRFID() {
+            $.get("api/log")
+                .done((data) => {
+                    $("#loadingimg2").hide();
+                    var tbl = $("#tbl_log_rfid");
+                    tbl.html('');
+                    if (data.length > 0) {
+                        $.each(data, (i, v) => {
+                            var clase = v.resultado === 'Acceso Correcto' ? 'success' : 'danger';
+                            var tr = '<tr>';
+                            tr += '<td>' + v.ip_sala + '</td>';
+                            tr += '<td>' + v.nombre_sala + '</td>';
+                            tr += '<td>' + v.id_tarjeta + '</td>';
+                            tr += '<td>' + v.nom_usuario + '</td>';
+                            tr += '<td><span class="text-' + clase + '">' + v.resultado + '</span></td>';
+                            var f_registro = moment(v.f_registro);
+                            tr += '<td>' + f_registro.format('DD-MM-YYYY HH:mm:ss') + '</td>';
+                            tr += '</tr>';
                             tbl.append(tr);
                         });
                     }

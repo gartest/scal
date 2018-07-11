@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 
@@ -18,8 +19,10 @@ namespace SCAL.Controllers
             var model = SalasModel.GetSalasStatus();
             return View(model);
         }
-        public ActionResult Users()
+        public async Task<ActionResult> Users()
         {
+            ViewBag.Rooms = await SalasModel.GetSalas();
+            ViewBag.Users = await UsuariosModel.getUsuarios();
             return View();
         }
     }

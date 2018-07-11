@@ -1,22 +1,45 @@
-﻿@{
+﻿@using SCAL.Models
+@using Newtonsoft.Json
+@using Newtonsoft.Json.Linq
+@{
     ViewBag.Title = "Usuarios";
+    var users = (List<Usuario>)ViewBag.Users;
+    var rooms = (List<Sala>)ViewBag.Rooms;
 }
 <h1>Usuarios</h1>
 <div class="row">
     <div class="col-md-12">
-        <table class="table table-hover table-striped">
-            <thead>
-                <tr>
-                    <th>Id</th>
-                    <th>Tarjeta</th>
-                    <th>Nombre</th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
+        <div class="table-responsive">
+            <table class="table table-hover table-striped">
+                <thead>
+                    <tr>
+                        <th>Id</th>
+                        <th>Tarjeta</th>
+                        <th>Nombre</th>
+                        <th>Salas permitidas</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var u in users)
+                    {
+                        <tr>
+                            <td>@u.id</td>
+                            <td>@u.tarjeta</td>
+                            <td>@u.nombre</td>
+                            <td>@(string.Join("<br />", u.salas_permitidas))</td>
+                            <td data-usuario="@JObject.FromObject(u).ToString()">
+                                <a href="#" class="text-warning" onclick="editar(this);">Editar</a> |
+                                <a href="#" class="text-danger" onclick="eliminar(this);">Eliminar</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
         <!-- Button trigger modal -->
         <button type="button" class="btn btn-primary pull-right" data-toggle="modal" data-target="#modalNewUser">
-            Agregar nueva usuario
+            Agregar nuevo usuario
         </button>
     </div>
 </div>
@@ -26,21 +49,33 @@
         <div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                <h4 class="modal-title" id="myModalLabel">Agregar nueva sala</h4>
+                <h4 class="modal-title" id="myModalLabel">Agregar nuevo Usuario</h4>
             </div>
             <div class="modal-body">
-                <form class="form-horizontal" id="frmSaveNewRoom">
+                <form class="form-horizontal" id="frmSaveNewUser">
                     <div class="form-group">
-                        <label for="tarjeta" class="col-sm-2 control-label">Tarjeta</label>
-                        <div class="col-sm-10">
-                            <input type="text" class="form-control" id="tarjeta" placeholder="aa 9a e7 2b" required="required">
+                        <label for="tarjeta" class="col-sm-4 control-label">Tarjeta</label>
+                        <div class="col-sm-8">
+                            <input type="text" class="form-control" id="tarjeta" placeholder="Ej: aa9ae72b" required="required">
                         </div>
                     </div>
-
                     <div class="form-group">
-                        <label for="nombre" class="col-sm-2 control-label">Nombre</label>
-                        <div class="col-sm-10">
-                            <input type="text" class="form-control" id="nombre" placeholder="Ej: Sala 10" required="required">
+                        <label for="nombre" class="col-sm-4 control-label">Nombre de usuario</label>
+                        <div class="col-sm-8">
+                            <input type="text" class="form-control" id="nombre" placeholder="Ej: Kelly Vásquez" required="required">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="nombre" class="col-sm-4 control-label">Salas Permitidas</label>
+                        <div class="col-sm-8">
+                            <div class="checkbox">
+                                @foreach(var s in rooms)
+                                {
+                                <label>
+                                    <input type="checkbox" class="allowedRoom" value="@s.ip"> @s.descripcion
+                                </label>
+                                }
+                            </div>
                         </div>
                     </div>
                     <input id="sbtn" type="submit" style="display:none;" />
@@ -48,8 +83,110 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-primary" id="btnGuardarNewRoom">Guardar</button>
+                <button type="button" class="btn btn-primary" id="btnGuardarNewUser">Guardar</button>
             </div>
         </div>
     </div>
 </div>
+<!-- Modal -->
+<div class="modal fade" id="modalDelUser" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="myModalLabel">Confirmación de eliminación</h4>
+            </div>
+            <div class="modal-body">
+                <h4>¿Está seguro que desea eliminar el usuario?</h4>
+                <div id="borradaOk" class="alert alert-success alert-dismissible" role="alert" style="display:none;">
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <strong>OK</strong> el usuario se eliminó correctamente.
+                </div>
+                <div id="borradaError" class="alert alert-danger alert-dismissible" role="alert" style="display:none;">
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <strong>Error</strong> no se pudo borrar el usuario.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="btnconfirmborrarUsuario">Confirmar</button>
+            </div>
+        </div>
+    </div>
+</div>
+@section scripts{
+    <script>
+        $(document).ready(() => {
+            $("#btnGuardarNewUser").click(() => {
+                $("#sbtn").click();
+            });
+            $("#frmSaveNewUser").submit((e) => {
+                e.preventDefault();
+                var ar = [];
+                $.each($(".allowedRoom"), (i,v) => {
+                    ar.push($(v).val());
+                });
+                var data = {
+                    id: null,
+                    tarjeta: $("#tarjeta").val(),
+                    nombre: $("#nombre").val(),
+                    salas_permitidas: ar
+                };
+                console.log(JSON.stringify(data));
+                $.ajax({
+                    type: 'POST',
+                    url: '/api/users',
+                    contentType: 'application/json',
+                    data: JSON.stringify(data),
+                })
+                    .done((data) => {
+                        console.log(data);
+                        if (data === 'Ok') {
+                            $("#okAlert").fadeIn();
+                            location.reload();
+                        }
+                        else {
+                            $("#modalNewUser").modal('hide');
+                            $("#errorAlert").fadeIn().delay(4000).fadeOut();
+                        }
+
+                    })
+                    .fail(() => {
+                        $("#errorAlert").fadeIn().delay(4000).fadeOut();
+                    })
+                    .always();
+            });
+            $("#btnconfirmborrarUsuario").click(() => {
+                var std = JSON.parse($("#btnconfirmborrarUsuario").attr("data-usuariotodelete"));
+                $.ajax({
+                    type: 'DELETE',
+                    url: '/api/users/' + std.id,
+                })
+                    .done((data) => {
+                        console.log(data);
+                        if (data === 'Ok') {
+                            $("#borradaOk").fadeIn();
+                            location.reload();
+                        }
+                        else {
+                            $("#borradaError").fadeIn().delay(4000).fadeOut();
+                        }
+
+                    })
+                    .fail(() => {
+                        $("#borradaError").fadeIn().delay(4000).fadeOut();
+                    })
+                    .always();
+            });
+        });
+        function editar(elem) {
+            var sala = JSON.parse($(elem).parent().attr("data-usuario"));
+            console.log(JSON.stringify(sala));
+        }
+        function eliminar(elem) {
+            var sala = JSON.parse($(elem).parent().attr("data-usuario"));
+            $("#modalDelUser").modal('show');
+            $("#btnconfirmborrarUsuario").attr("data-usuariotodelete", JSON.stringify(sala));
+        }
+    </script>
+}

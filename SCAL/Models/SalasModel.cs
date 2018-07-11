@@ -26,6 +26,7 @@ namespace SCAL.Models
         public const string sp_scal_sel_salas = "scal_sel_salas";
         public const string sp_scal_set_sala = "scal_ing_sala";
         public const string sp_scal_del_sala = "scal_del_sala";
+        public const string sp_scal_sel_tarjetas_permitidas = "scal_sel_tarjetas_permitidas";
         public static async Task<List<Sala>> GetSalas()
         {
             var res = new List<Sala>();
@@ -33,6 +34,7 @@ namespace SCAL.Models
             {
                 try
                 {
+                    dbConn.Open();
                     using (var cmd = new SqlCommand(sp_scal_sel_salas, dbConn))
                     {
                         var dr = await cmd.ExecuteReaderAsync();
@@ -161,6 +163,36 @@ namespace SCAL.Models
             }
             return res;
         }
+        public static string GetTarjetasPermitidas(string ip)
+        {
+            var res = "";
+            var dbConn = new SqlConnection(ConfigurationManager.ConnectionStrings[appContext].ConnectionString);
+            try
+            {
+                dbConn.Open();
+                var cmd = new SqlCommand(sp_scal_sel_tarjetas_permitidas, dbConn);
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@ip", ip);
+                var dr = cmd.ExecuteReader();
+                if (dr.HasRows)
+                {
+                    while (dr.Read())
+                    {
+                        res += dr["tarjeta"].ToString();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                res = "Error: " + ex.Message;
+            }
+            finally
+            {
+                if (dbConn.State == ConnectionState.Open)
+                    dbConn.Close();
+            }
+            return res;
+        }
         public static string EncenderLuz(string ip)
         {
             var res = "";
@@ -198,6 +230,29 @@ namespace SCAL.Models
                 else
                 {
                     res = "Error apagando luces en arduino";
+                }
+            }
+            catch (Exception ex)
+            {
+                res = "Error: " + ex.Message;
+            }
+            return res;
+
+        }
+        public static string SetPermisos(string ip, string permitidos)
+        {
+            var res = "";
+            var client = new HttpClient();
+            try
+            {
+                var response = client.GetStringAsync("http://" + ip + "/?setpermitidos=" + permitidos).Result;
+                if (response.Replace(Environment.NewLine, string.Empty) == "Luces apagadas")
+                {
+                    res = "Ok";
+                }
+                else
+                {
+                    res = "Error seteando permisos";
                 }
             }
             catch (Exception ex)
